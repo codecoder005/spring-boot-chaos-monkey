@@ -1,0 +1,50 @@
+spring:
+  jpa:
+    open-in-view: false
+    generate-ddl: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+    database: default
+    show-sql: true
+    hibernate:
+      ddl-auto: create
+  datasource:
+    generate-unique-name: false
+    url: jdbc:h2:mem:a2zdb?DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: sa
+  profiles:
+    active: chaos-monkey
+
+## Spring Boot actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    chaosmonkey:
+      enabled: true
+    chaosmonkeyjmx:
+      enabled: true
+
+chaos:
+  monkey:
+    enabled: true
+
+# These properties are to enable from code level,
+# or we can say default for settings we are setting,
+# If you disable these, you can use POST http://localhost:8080/actuator/chaosmonkey/watchers api to do the config
+#chaos:
+#  monkey:
+#    enabled: true
+#    watcher:
+#      service: true
+#    assaults:
+#      level: 1
+#      latency-active: true
+#      latency-range-start: 2000
+#      latency-range-end: 3000

@@ -1,0 +1,390 @@
+{
+  "chaoslib-version": "1.44.0",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "node": "MSI",
+  "experiment": {
+    "version": "1.0.0",
+    "title": "Exception Assault on GET /api/v1/users/{userId}",
+    "description": "Simulates failures on the UserController::getUserByUserId API using Chaos Monkey",
+    "tags": [
+      "chaos-monkey",
+      "exception-assault",
+      "user-service"
+    ],
+    "owner": "SRE / DevOps Team",
+    "steady-state-hypothesis": {
+      "title": "User API is healthy",
+      "probes": [
+        {
+          "type": "probe",
+          "name": "baseline-user-api-health",
+          "tolerance": 200,
+          "provider": {
+            "type": "http",
+            "method": "GET",
+            "url": "http://localhost:8080/api/v1/users/1"
+          }
+        }
+      ]
+    },
+    "method": [
+      {
+        "type": "action",
+        "name": "enable-chaos-monkey",
+        "provider": {
+          "type": "http",
+          "method": "POST",
+          "url": "http://localhost:8080/actuator/chaosmonkey/enable"
+        }
+      },
+      {
+        "type": "action",
+        "name": "enable-exceptions-assault",
+        "provider": {
+          "type": "http",
+          "method": "POST",
+          "url": "http://localhost:8080/actuator/chaosmonkey/assaults",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "level": 1,
+            "latencyActive": false,
+            "exceptionsActive": true,
+            "exception": {
+              "type": "java.lang.RuntimeException",
+              "method": "<init>",
+              "arguments": [
+                {
+                  "type": "java.lang.String",
+                  "value": "Chaos Monkey - RuntimeException"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "type": "probe",
+        "name": "verify-exception-injection",
+        "tolerance": {
+          "status": [
+            500
+          ]
+        },
+        "provider": {
+          "type": "http",
+          "method": "GET",
+          "url": "http://localhost:8080/api/v1/users/1",
+          "timeout": 5
+        }
+      }
+    ],
+    "rollbacks": [
+      {
+        "type": "action",
+        "name": "disable-exceptions-assault",
+        "provider": {
+          "type": "http",
+          "method": "POST",
+          "url": "http://localhost:8080/actuator/chaosmonkey/assaults",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "exceptionsActive": false,
+            "latencyActive": false
+          }
+        }
+      },
+      {
+        "type": "action",
+        "name": "disable-chaos-monkey",
+        "provider": {
+          "type": "http",
+          "method": "POST",
+          "url": "http://localhost:8080/actuator/chaosmonkey/disable"
+        }
+      }
+    ],
+    "dry": null
+  },
+  "start": "2025-10-18T18:58:06.416902+00:00",
+  "status": "completed",
+  "deviated": false,
+  "steady_states": {
+    "before": {
+      "steady_state_met": true,
+      "probes": [
+        {
+          "activity": {
+            "type": "probe",
+            "name": "baseline-user-api-health",
+            "tolerance": 200,
+            "provider": {
+              "type": "http",
+              "method": "GET",
+              "url": "http://localhost:8080/api/v1/users/1"
+            }
+          },
+          "output": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json",
+              "Transfer-Encoding": "chunked",
+              "Date": "Sat, 18 Oct 2025 18:58:06 GMT",
+              "Keep-Alive": "timeout=60",
+              "Connection": "keep-alive"
+            },
+            "body": {
+              "userId": 1,
+              "name": "John Doe",
+              "email": "john.doe@email.com",
+              "password": null
+            }
+          },
+          "start": "2025-10-18T18:58:06.417887+00:00",
+          "status": "succeeded",
+          "end": "2025-10-18T18:58:06.555551+00:00",
+          "duration": 0.137664,
+          "tolerance_met": true
+        }
+      ]
+    },
+    "after": {
+      "steady_state_met": true,
+      "probes": [
+        {
+          "activity": {
+            "type": "probe",
+            "name": "baseline-user-api-health",
+            "tolerance": 200,
+            "provider": {
+              "type": "http",
+              "method": "GET",
+              "url": "http://localhost:8080/api/v1/users/1"
+            }
+          },
+          "output": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json",
+              "Transfer-Encoding": "chunked",
+              "Date": "Sat, 18 Oct 2025 18:58:06 GMT",
+              "Keep-Alive": "timeout=60",
+              "Connection": "keep-alive"
+            },
+            "body": {
+              "userId": 1,
+              "name": "John Doe",
+              "email": "john.doe@email.com",
+              "password": null
+            }
+          },
+          "start": "2025-10-18T18:58:06.606216+00:00",
+          "status": "succeeded",
+          "end": "2025-10-18T18:58:06.610290+00:00",
+          "duration": 0.004074,
+          "tolerance_met": true
+        }
+      ]
+    },
+    "during": []
+  },
+  "run": [
+    {
+      "activity": {
+        "type": "action",
+        "name": "enable-chaos-monkey",
+        "provider": {
+          "type": "http",
+          "method": "POST",
+          "url": "http://localhost:8080/actuator/chaosmonkey/enable"
+        }
+      },
+      "output": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json",
+          "Transfer-Encoding": "chunked",
+          "Date": "Sat, 18 Oct 2025 18:58:06 GMT",
+          "Keep-Alive": "timeout=60",
+          "Connection": "keep-alive"
+        },
+        "body": {
+          "enabledAt": "2025-10-19T00:21:55.145+05:30",
+          "enabledFor": {
+            "raw": "PT6M11.413S",
+            "formatted": "6 minutes 11 seconds"
+          },
+          "enabled": true
+        }
+      },
+      "start": "2025-10-18T18:58:06.556077+00:00",
+      "status": "succeeded",
+      "end": "2025-10-18T18:58:06.565236+00:00",
+      "duration": 0.009159
+    },
+    {
+      "activity": {
+        "type": "action",
+        "name": "enable-exceptions-assault",
+        "provider": {
+          "type": "http",
+          "method": "POST",
+          "url": "http://localhost:8080/actuator/chaosmonkey/assaults",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "level": 1,
+            "latencyActive": false,
+            "exceptionsActive": true,
+            "exception": {
+              "type": "java.lang.RuntimeException",
+              "method": "<init>",
+              "arguments": [
+                {
+                  "type": "java.lang.String",
+                  "value": "Chaos Monkey - RuntimeException"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "output": {
+        "status": 500,
+        "headers": {
+          "Content-Type": "application/json",
+          "Transfer-Encoding": "chunked",
+          "Date": "Sat, 18 Oct 2025 18:58:06 GMT",
+          "Connection": "close"
+        },
+        "body": {
+          "type": "about:blank",
+          "title": "Internal Server Error",
+          "status": 500,
+          "detail": "Required request body is missing: public java.lang.String de.codecentric.spring.boot.chaos.monkey.endpoints.ChaosMonkeyRestEndpoint.updateAssaultProperties(de.codecentric.spring.boot.chaos.monkey.endpoints.dto.AssaultPropertiesUpdate)",
+          "instance": "/actuator/chaosmonkey/assaults"
+        }
+      },
+      "start": "2025-10-18T18:58:06.565424+00:00",
+      "status": "succeeded",
+      "end": "2025-10-18T18:58:06.586851+00:00",
+      "duration": 0.021427
+    },
+    {
+      "activity": {
+        "type": "probe",
+        "name": "verify-exception-injection",
+        "tolerance": {
+          "status": [
+            500
+          ]
+        },
+        "provider": {
+          "type": "http",
+          "method": "GET",
+          "url": "http://localhost:8080/api/v1/users/1",
+          "timeout": 5
+        }
+      },
+      "output": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json",
+          "Transfer-Encoding": "chunked",
+          "Date": "Sat, 18 Oct 2025 18:58:06 GMT",
+          "Keep-Alive": "timeout=60",
+          "Connection": "keep-alive"
+        },
+        "body": {
+          "userId": 1,
+          "name": "John Doe",
+          "email": "john.doe@email.com",
+          "password": null
+        }
+      },
+      "start": "2025-10-18T18:58:06.586955+00:00",
+      "status": "succeeded",
+      "end": "2025-10-18T18:58:06.605785+00:00",
+      "duration": 0.01883
+    }
+  ],
+  "rollbacks": [
+    {
+      "activity": {
+        "type": "action",
+        "name": "disable-exceptions-assault",
+        "provider": {
+          "type": "http",
+          "method": "POST",
+          "url": "http://localhost:8080/actuator/chaosmonkey/assaults",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "exceptionsActive": false,
+            "latencyActive": false
+          }
+        }
+      },
+      "output": {
+        "status": 500,
+        "headers": {
+          "Content-Type": "application/json",
+          "Transfer-Encoding": "chunked",
+          "Date": "Sat, 18 Oct 2025 18:58:06 GMT",
+          "Connection": "close"
+        },
+        "body": {
+          "type": "about:blank",
+          "title": "Internal Server Error",
+          "status": 500,
+          "detail": "Required request body is missing: public java.lang.String de.codecentric.spring.boot.chaos.monkey.endpoints.ChaosMonkeyRestEndpoint.updateAssaultProperties(de.codecentric.spring.boot.chaos.monkey.endpoints.dto.AssaultPropertiesUpdate)",
+          "instance": "/actuator/chaosmonkey/assaults"
+        }
+      },
+      "start": "2025-10-18T18:58:06.611035+00:00",
+      "status": "succeeded",
+      "end": "2025-10-18T18:58:06.614416+00:00",
+      "duration": 0.003381
+    },
+    {
+      "activity": {
+        "type": "action",
+        "name": "disable-chaos-monkey",
+        "provider": {
+          "type": "http",
+          "method": "POST",
+          "url": "http://localhost:8080/actuator/chaosmonkey/disable"
+        }
+      },
+      "output": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json",
+          "Transfer-Encoding": "chunked",
+          "Date": "Sat, 18 Oct 2025 18:58:06 GMT",
+          "Keep-Alive": "timeout=60",
+          "Connection": "keep-alive"
+        },
+        "body": {
+          "disabledAt": "2025-10-19T00:28:06.615+05:30",
+          "enabledFor": {
+            "raw": "PT6M11.47S",
+            "formatted": "6 minutes 11 seconds"
+          },
+          "enabled": false
+        }
+      },
+      "start": "2025-10-18T18:58:06.614565+00:00",
+      "status": "succeeded",
+      "end": "2025-10-18T18:58:06.616478+00:00",
+      "duration": 0.001913
+    }
+  ],
+  "end": "2025-10-18T18:58:06.616533+00:00",
+  "duration": 0.19964838027954102
+}

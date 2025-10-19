@@ -1,0 +1,103 @@
+{
+  "version": "1.0.0",
+  "title": "Exception Assault on GET /api/v1/users/{userId}",
+  "description": "Simulates failures on the UserController::getUserByUserId API using Chaos Monkey",
+  "tags": ["chaos-monkey", "exception-assault", "user-service"],
+  "owner": "SRE / DevOps Team",
+
+  "steady-state-hypothesis": {
+    "title": "User API is healthy",
+    "probes": [
+      {
+        "type": "probe",
+        "name": "baseline-user-api-health",
+        "tolerance": 200,
+        "provider": {
+          "type": "http",
+          "method": "GET",
+          "url": "http://localhost:8080/api/v1/users/1"
+        }
+      }
+    ]
+  },
+
+  "method": [
+    {
+      "type": "action",
+      "name": "enable-chaos-monkey",
+      "provider": {
+        "type": "http",
+        "method": "POST",
+        "url": "http://localhost:8080/actuator/chaosmonkey/enable"
+      }
+    },
+    {
+      "type": "action",
+      "name": "enable-exceptions-assault",
+      "provider": {
+        "type": "http",
+        "method": "POST",
+        "url": "http://localhost:8080/actuator/chaosmonkey/assaults",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "level": 1,
+          "latencyActive": false,
+          "exceptionsActive": true,
+          "exception": {
+            "type": "java.lang.RuntimeException",
+            "method": "<init>",
+            "arguments": [
+              {
+                "type": "java.lang.String",
+                "value": "Chaos Monkey - RuntimeException"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "probe",
+      "name": "verify-exception-injection",
+      "tolerance": {
+        "status": [500]
+      },
+      "provider": {
+        "type": "http",
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/users/1",
+        "timeout": 5
+      }
+    }
+  ],
+
+  "rollbacks": [
+    {
+      "type": "action",
+      "name": "disable-exceptions-assault",
+      "provider": {
+        "type": "http",
+        "method": "POST",
+        "url": "http://localhost:8080/actuator/chaosmonkey/assaults",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "exceptionsActive": false,
+          "latencyActive": false
+        }
+      }
+    },
+    {
+      "type": "action",
+      "name": "disable-chaos-monkey",
+      "provider": {
+        "type": "http",
+        "method": "POST",
+        "url": "http://localhost:8080/actuator/chaosmonkey/disable"
+      }
+    }
+  ]
+}
